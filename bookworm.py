@@ -5,6 +5,8 @@ import json
 import requests
 import re
 import sys
+import nltk
+from nltk.tokenize import word_tokenize
 
 CACHE_DIR = "cache"
 BOOKS_DIR = "books"
@@ -68,6 +70,37 @@ def get_clean_text(book_id: int) -> str:
     text = re.sub(r'[ \t]+', ' ', text, flags=re.MULTILINE).strip()
     return text
 
+def calculate_lexdiv(text: str) -> dict:
+    # Tokenisation : découpe le texte en mots
+    tokens = word_tokenize(text)
+
+    # Comptage que des mots sans ponctuaction
+    words = [t.lower() for t in tokens if t.isalpha()]
+
+    tok = len(words)
+    typ = len(set(words))
+
+    # Compte combien de fois chaque mot apparaît
+    freq = {}
+    for word in words:
+        freq[word] = freq.get(word, 0) + 1
+
+    # Hapax = mots qui n'apparaissent qu'une seule fois
+    hap = sum(1 for count in freq.values() if count == 1)
+
+    ttr = round(typ / tok, 4) if tok > 0 else 0.0
+    mwl = round(sum(len(w) for w in words) / tok, 4) if tok > 0 else 0.0
+    mwf = round(tok / typ, 4) if typ > 0 else 0.0
+
+    return {
+        "tok": tok,
+        "typ": typ,
+        "hap": hap,
+        "ttr": ttr,
+        "mwl": mwl,
+        "mwf": mwf
+    }
+
 
 # STRUCTURE DU CLI
 def main():
@@ -97,13 +130,7 @@ def main():
             text = get_clean_text(book_id)
             print("Info: Calculating Lexical Diversity (not cached)...")
             
-            # TODO: ajouter fonction lexdiv
-            # result = calculate_lexdiv(text)
-            
-            #exemple
-            result = {"tok": 0, "typ": 0, "hap": 0, "ttr": 0.0, "mwl": 0.0, "mwf": 0.0}
-            
-            #sauvegarde
+            result = calculate_lexdiv(text)
             save_to_cache(book_id, "lexdiv", result)
             
         print(result)
