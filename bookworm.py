@@ -6,10 +6,29 @@ import requests
 import re
 import sys
 
+CACHE_DIR = "cache"
+BOOKS_DIR = "books"
 
-# téléchargement (si pas deja dans le projet)
+# creation automatique des dossiers 
+os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(BOOKS_DIR, exist_ok=True)
+
+def save_to_cache(book_id: int, task_name: str, data):
+    """Sauvegarde le résultat un fichier JSON."""
+    filepath = os.path.join(CACHE_DIR, f"{book_id}_{task_name}.json")
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4)
+
+def load_from_cache(book_id: int, task_name: str):
+    """Charge le résultat depuis le cache s'il existe"""
+    filepath = os.path.join(CACHE_DIR, f"{book_id}_{task_name}.json")
+    if os.path.exists(filepath):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return None
+
+#téléchérgement du livre si il n'existe pas sur le disque
 def download_book(book_id: int) -> str:
-    
     filepath = os.path.join(BOOKS_DIR, f"{book_id}.txt")
     if os.path.exists(filepath):
         return filepath
@@ -30,10 +49,9 @@ def download_book(book_id: int) -> str:
     except requests.exceptions.RequestException as e:
         print(f"Error downloading book: {e}", file=sys.stderr)
         sys.exit(1)
-
 #nettoyage du texte
 def get_clean_text(book_id: int) -> str:
-    """Récupère le texte du livre et le nettoie (Header/Footer, espaces)."""
+ 
     filepath = download_book(book_id)
     
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -51,11 +69,11 @@ def get_clean_text(book_id: int) -> str:
     return text
 
 
-#STRUCTURE DU CLI
+# STRUCTURE DU CLI
 def main():
     parser = argparse.ArgumentParser(description="Through the Looking-Glass - NLP Engine")
     
-    #les commandes prennent l'ID du livre en argument
+    #les commandes prennent l'ID du livre en argument (type=int)
     group = parser.add_mutually_exclusive_group(required=True)
     
     group.add_argument('--lexdiv', type=int, help="Calculate lexical diversity for a book ID")
@@ -71,13 +89,26 @@ def main():
     
     if args.lexdiv is not None:
         book_id = args.lexdiv
+        #vérifie d'abord le cache 
+        result = load_from_cache(book_id, "lexdiv")
         
-        
-        
+        if result is None:
+            # si pas en cache, on récupère le texte propre
+            text = get_clean_text(book_id)
+            print("Info: Calculating Lexical Diversity (not cached)...")
             
-       
+            # TODO: ajouter fonction lexdiv
+            # result = calculate_lexdiv(text)
+            
+            #exemple
+            result = {"tok": 0, "typ": 0, "hap": 0, "ttr": 0.0, "mwl": 0.0, "mwf": 0.0}
+            
+            #sauvegarde
+            save_to_cache(book_id, "lexdiv", result)
+            
+        print(result)
 
-    # Les autres elif viendront se placer ici sur le même modèle...
+    # Ajouter les autres elif ici 
     elif args.topics is not None:
         print(f"Pret à coder --topics pour le livre {args.topics}")
         
