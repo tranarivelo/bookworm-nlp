@@ -7,6 +7,9 @@ import re
 import sys
 import nltk
 from nltk.tokenize import word_tokenize
+from nltk import pos_tag, ne_chunk
+from nltk.tokenize import sent_tokenize
+from nltk.tree import Tree
 
 CACHE_DIR = "cache"
 BOOKS_DIR = "books"
@@ -140,7 +143,44 @@ def main():
         print(f"Pret à coder --topics pour le livre {args.topics}")
         
     elif args.entities is not None:
-        print(f"Pret à coder --entities pour le livre {args.entities}")
+        book_id = args.entities
+        result = load_from_cache(book_id, "entities")
+
+        if result is None:
+            text = get_clean_text(book_id)
+            print("Info: Extracting entities (not cached)...")
+            result = extract_entities(text)
+            save_to_cache(book_id, "entities", result)
+
+        print(result)
+        
+def extract_entities(text: str) -> dict:
+    characters = set()
+    locations = set()
+
+    # Tokenization phrase par phrase
+    sentences = sent_tokenize(text)
+
+    for sentence in sentences:
+        tokens = word_tokenize(sentence)
+        tagged = pos_tag(tokens)
+        chunks = ne_chunk(tagged)
+
+        for chunk in chunks:
+            # ne_chunk retourne soit une entité, soit mot normal
+            if isinstance(chunk, Tree):
+                name = " ".join(token for token, pos in chunk.leaves())
+                label = chunk.label()
+
+                if label == "PERSON":
+                    characters.add(name)
+                elif label in ("GPE", "GSP", "LOCATION"):
+                    locations.add(name)
+
+    return {
+        "characters": sorted(list(characters)),
+        "locations": sorted(list(locations))
+    }
 
 if __name__ == "__main__":
     main()
