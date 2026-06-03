@@ -32,8 +32,11 @@ def load_from_cache(book_id: int, task_name: str):
             return json.load(f)
     return None
 
-#téléchérgement du livre si il n'existe pas sur le disque
 def download_book(book_id: int) -> str:
+    
+        """Télécharge un livre depuis Project Gutenberg et le sauvegarde localement. 
+        Retourne le chemin vers le fichier. Ne re-télécharge pas si déjà présent."""
+        
     filepath = os.path.join(BOOKS_DIR, f"{book_id}.txt")
     if os.path.exists(filepath):
         return filepath
@@ -54,8 +57,11 @@ def download_book(book_id: int) -> str:
     except requests.exceptions.RequestException as e:
         print(f"Error downloading book: {e}", file=sys.stderr)
         sys.exit(1)
-#nettoyage du texte
+
 def get_clean_text(book_id: int) -> str:
+    
+    """Retourne le texte nettoyé d'un livre : suppression header/footer Gutenberg,
+    normalisation des espaces multiples."""
  
     filepath = download_book(book_id)
     
@@ -74,6 +80,17 @@ def get_clean_text(book_id: int) -> str:
     return text
 
 def calculate_lexdiv(text: str) -> dict:
+    """Calcule les métriques de diversité lexicale d'un texte.
+
+    Approche : tokenisation → filtrage ponctuation → comptage fréquences
+
+    Métriques retournées :
+    - tok : nombre total de tokens (mots, répétitions incluses)
+    - typ : nombre de types (mots uniques)
+    - hap : hapax legomena (mots apparaissant exactement une fois)
+    - ttr : Type-Token Ratio (typ/tok) — proche de 1 = vocabulaire varié
+    - mwl : longueur moyenne des mots en caractères
+    - mwf : fréquence moyenne des mots (tok/typ), inverse du TTR"""
     # Tokenisation : découpe le texte en mots
     tokens = word_tokenize(text)
 
@@ -155,6 +172,20 @@ def main():
         print(result)
         
 def extract_entities(text: str) -> dict:
+    """Extrait les personnages et lieux d'un texte via NLTK ne_chunk.
+
+    Approche : tokenisation par phrase → POS tagging → NER (Maxent chunker)
+    On filtre ensuite les entités de type PERSON, GPE, GSP et LOCATION.
+
+    Limitations connues :
+    - Génère des faux positifs sur les mots capitalisés en début de phrase
+      (ex: "Found", "Always", "Grief" détectés comme personnages)
+    - Le chunker NLTK est un modèle statistique léger entraîné sur des corpus
+      généraux (ACE), moins précis que spaCy (en_core_web_sm) ou un LLM
+    - Ne distingue pas les homonymes (ex: "Alice" peut être lieu et personnage)
+
+    Choix justifié : NLTK respecte la contrainte "no heavy models" du sujet."""
+    
     characters = set()
     locations = set()
 
