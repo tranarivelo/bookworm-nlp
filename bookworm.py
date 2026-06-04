@@ -10,6 +10,8 @@ from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
 from nltk.tokenize import sent_tokenize
 from nltk.tree import Tree
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
 
 CACHE_DIR = "cache"
 BOOKS_DIR = "books"
@@ -34,8 +36,8 @@ def load_from_cache(book_id: int, task_name: str):
 
 def download_book(book_id: int) -> str:
     
-        """Télécharge un livre depuis Project Gutenberg et le sauvegarde localement. 
-        Retourne le chemin vers le fichier. Ne re-télécharge pas si déjà présent."""
+    """Télécharge un livre depuis Project Gutenberg et le sauvegarde localement. 
+    Retourne le chemin vers le fichier. Ne re-télécharge pas si déjà présent."""
         
     filepath = os.path.join(BOOKS_DIR, f"{book_id}.txt")
     if os.path.exists(filepath):
@@ -120,6 +122,80 @@ def calculate_lexdiv(text: str) -> dict:
         "mwl": mwl,
         "mwf": mwf
     }
+    
+def split_into_sections(text: str, n_sections: int = 4) -> list:
+    
+    """Découpe le texte en sections de taille ~ égale.
+    division par nombre de caractères."""
+    
+    # Découpe d'abord en paragraphes (séparés par lignes vides)
+    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
+    
+    # Regroupe les paragraphes en sections égales
+    section_size = max(1, len(paragraphs) // n_sections)
+    sections = []
+    
+    for i in range(n_sections):
+        start = i * section_size
+
+        end = start + section_size if i < n_sections - 1 else len(paragraphs)
+        section_text = " ".join(paragraphs[start:end])
+        if section_text:
+            sections.append(section_text)
+    
+    return sections
+
+def extract_topics(text: str, n_topics: int = 4, n_words: int = 10) -> dict:
+    """Extrait les topics principaux d'un livre via LDA.
+
+    Pipeline : découpage en sections -> vectorisation
+    LDA -> extraction des top mots par topic.
+
+    Approche choisie : LDA (Latent Dirichlet Allocation)
+    - Chaque section est un regroupement de topics
+    - Chaque topic est une distribution sur le vocabulaire (plus large donc...)
+
+    Limitations :
+    - LDA est sensible au nombre de topics choisi (ici fixé à 4)
+    - Les stopwords doivent être filtrés en amont pour de bons résultats"""
+
+    sections = split_into_sections(text, n_sections=n_topics)
+
+    # Vectorisation : transforme chaque section en vecteur de fréquences de mots
+    # max_df=0.9 : ignore les mots présents dans plus de 90% des sections (trop communs)
+    # min_df=2   : ignore les mots présents dans moins de 2 sections (trop rares)
+    vectorizer = CountVectorizer(
+        stop_words='english',
+        max_df=0.9,
+        min_df=2,
+        max_features=1000
+    )
+
+    try:
+        dtm = vectorizer.fit_transform(sections)
+    except ValueError:
+        # Pas assez de sections ou vocabulaire trop pauvre
+        return {i + 1: [] for i in range(n_topics)}
+
+    # LDA : trouve n_topics groupes de mots cohérents
+    lda = LatentDirichletAllocation(
+        n_components=n_topics,
+        random_state=42,
+        max_iter=10
+    )
+    lda.fit(dtm)
+
+    # Récupère le vocabulaire
+    feature_names = vectorizer.get_feature_names_out()
+
+    # Pour chaque topic, récupère les n_words mots les plus représentatifs
+    topics = {}
+    for topic_idx, topic in enumerate(lda.components_):
+        top_indices = topic.argsort()[-n_words:][::-1]
+        top_words = [feature_names[i] for i in top_indices]
+        topics[topic_idx + 1] = top_words
+
+    return topics
 
 
 # STRUCTURE DU CLI
@@ -157,7 +233,16 @@ def main():
 
     # Ajouter les autres elif ici 
     elif args.topics is not None:
-        print(f"Pret à coder --topics pour le livre {args.topics}")
+        book_id = args.topics
+        result = load_from_cache(book_id, "topics")
+
+        if result is None:
+            text = get_clean_text(book_id)
+            print("Info: Extracting topics (not cached)...")
+            result = extract_topics(text)
+            save_to_cache(book_id, "topics", result)
+
+        print(result)
         
     elif args.entities is not None:
         book_id = args.entities
