@@ -255,6 +255,55 @@ def extract_topics(text: str, n_topics: int = 4, n_words: int = 10) -> dict:
         topics[topic_idx + 1] = top_words
 
     return topics
+
+def get_similar_books(target_id: int) -> list:
+
+    collection_ids = [
+        11, 12, 16, 55, 113, 120, 236, 108, 834, 863, 1661, 
+        61262, 69087, 70114, 35, 36, 84, 159, 164, 345, 68283
+    ]
+    if target_id not in collection_ids:
+        collection_ids.append(target_id)
+        
+    print(f"Info: Processing {len(collection_ids)} books for similarity mapping. This might take a minute...")
+    
+    texts = []
+    valid_ids = []
+    
+    #Téléchargement et nettoyage
+    for b_id in collection_ids:
+        try:
+            
+            text = get_clean_text(b_id)
+            texts.append(text)
+            valid_ids.append(b_id)
+        except SystemExit:
+            # Ignore les livres qui n'ont pas pu être téléchargés
+            pass
+            
+    # des vecteurs TF-IDF
+    vectorizer = TfidfVectorizer(stop_words='english', max_features=10000)
+    tfidf_matrix = vectorizer.fit_transform(texts)
+    
+    # Récupérer le vecteur de notre cible
+    target_index = valid_ids.index(target_id)
+    target_vector = tfidf_matrix[target_index]
+    
+    # calculer la similarité cosinus avec TOUS les autres livres
+    similarities = cosine_similarity(target_vector, tfidf_matrix).flatten()
+    
+    scores = [(sim, valid_ids[i]) for i, sim in enumerate(similarities)]
+    scores.sort(reverse=True, key=lambda x: x[0])
+    top_5_ids = [b_id for sim, b_id in scores if b_id != target_id][:5]
+    
+    #convertir les IDs en Titres grâce au CSV
+    top_5_titles = []
+    for b_id in top_5_ids:
+        info = get_book_info(b_id)
+        top_5_titles.append(info['title'])
+        
+    return top_5_titles
+
 def extract_entities(text: str) -> dict:
     """Extrait les personnages et lieux d'un texte via NLTK ne_chunk.
 
@@ -367,6 +416,17 @@ def main():
             print("Info: Summarizing book (not cached)...")
             result = summarize_book(text)
             save_to_cache(book_id, "summarize", result)
+
+        print(result)
+
+    elif args.similar is not None:
+        book_id = args.similar
+        result = load_from_cache(book_id, "similar")
+
+        if result is None:
+            print("Info: Calculating book similarity (not cached)...")
+            result = get_similar_books(book_id)
+            save_to_cache(book_id, "similar", result)
 
         print(result)
         
