@@ -1,4 +1,4 @@
-# 📚 Bookworm — NLP Engine for Project Gutenberg
+# Bookworm — NLP Engine for Project Gutenberg
 
 A lightweight CLI tool that creates "book cards" by performing NLP analysis on books from Project Gutenberg.
 
@@ -64,12 +64,14 @@ python bookworm.py --topics 16
 
 ## Project Structure
 
+```
 bookworm/
-├── bookworm.py        # Main script
-├── Dockerfile         # Docker support
-├── requirements.txt   # Python dependencies
-├── books/             # Downloaded books (auto-generated)
-└── cache/             # Cached results (auto-generated)
+├── bookworm.py          # Main script
+├── Dockerfile           # Docker support
+├── requirements.txt     # Python dependencies
+├── books/               # Downloaded books (auto-generated)
+└── cache/               # Cached results (auto-generated)
+```
 
 ---
 
