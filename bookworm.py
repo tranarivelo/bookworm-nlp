@@ -14,6 +14,8 @@ from nltk.tree import Tree
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import csv 
 
 CACHE_DIR = "cache"
 BOOKS_DIR = "books"

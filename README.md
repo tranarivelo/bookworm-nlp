@@ -59,7 +59,7 @@ python bookworm.py <command> <book_id>
 | `--lexdiv <ID>` | Lexical diversity metrics |
 | `--entities <ID>` | Extract characters and locations |
 | `--topics <ID>` | Topic modeling (LDA) |
-| `--summarize <ID>` | Book summarization *(coming soon)* |
+| `--summarize <ID>` | Book summarization |
 | `--similar <ID>` | Find similar books *(coming soon)* |
 | `--card <ID>` | Full book card *(coming soon)* |
 
