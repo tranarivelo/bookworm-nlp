@@ -346,7 +346,53 @@ def extract_entities(text: str) -> dict:
         "locations": sorted(list(locations))
     }
 
+def generate_book_card(book_id: int) -> dict:
 
+    text = get_clean_text(book_id)
+    
+    # infos de base via le CSV
+    info = get_book_info(book_id)
+    
+    # diversité Lexicale
+    lexdiv = load_from_cache(book_id, "lexdiv")
+    if lexdiv is None:
+        lexdiv = calculate_lexdiv(text)
+        save_to_cache(book_id, "lexdiv", lexdiv)
+        
+    # Topics (LDA)
+    topics = load_from_cache(book_id, "topics")
+    if topics is None:
+        raw_topics = extract_topics(text)
+        topics = {str(k): v for k, v in raw_topics.items()}
+        save_to_cache(book_id, "topics", topics)
+        
+    # Entités
+    entities = load_from_cache(book_id, "entities")
+    if entities is None:
+        entities = extract_entities(text)
+        save_to_cache(book_id, "entities", entities)
+        
+    # Résumé
+    summary = load_from_cache(book_id, "summarize")
+    if summary is None:
+        summary = summarize_book(text, num_sentences=4)
+        save_to_cache(book_id, "summarize", summary)
+        
+    # Livres Similaires
+    similar = load_from_cache(book_id, "similar")
+    if similar is None:
+        similar = get_similar_books(book_id)
+        save_to_cache(book_id, "similar", similar)
+        
+    # Assemblage
+    return {
+        "info": info,
+        "lexdiv": lexdiv,
+        "topics": topics,
+        "entities": entities,
+        "summary": summary,
+        "similar": similar
+    }
 
 
 # STRUCTURE DU CLI
@@ -429,6 +475,12 @@ def main():
             save_to_cache(book_id, "similar", result)
 
         print(result)
+
+    elif args.card is not None:
+        book_id = args.card
+        print(f"Info: Generating full book card for ID {book_id}...")
+        book_card = generate_book_card(book_id)
+        print(json.dumps(book_card, indent=4, ensure_ascii=False))
         
 if __name__ == "__main__":
     main()
