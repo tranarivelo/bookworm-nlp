@@ -6,12 +6,14 @@ import requests
 import re
 import sys
 import nltk
+import numpy as np
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
 from nltk.tokenize import sent_tokenize
 from nltk.tree import Tree
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 CACHE_DIR = "cache"
 BOOKS_DIR = "books"
@@ -80,6 +82,49 @@ def get_clean_text(book_id: int) -> str:
         
     text = re.sub(r'[ \t]+', ' ', text, flags=re.MULTILINE).strip()
     return text
+
+def summarize_book(text: str, num_sentences: int = 4) -> str:
+    # Decouper le texte en phrases
+    sentences = sent_tokenize(text)
+    
+    # si le texte est minuscule
+    if len(sentences) <= num_sentences:
+        return text
+        
+    # filtrer les phrases selon la longeure
+    valid_sentences = []
+    original_indices = []
+    
+    for i, sentence in enumerate(sentences):
+        word_count = len(word_tokenize(sentence))
+        if 10 <= word_count <= 40:  # On garde les phrases de taille moyenne
+            valid_sentences.append(sentence)
+            original_indices.append(i)
+            
+    if not valid_sentences:
+        valid_sentences = sentences
+        original_indices = list(range(len(sentences)))
+
+    # Vectorisation TF-IDF
+    # On enlève les stopwords pour que les scores se concentrent sur les mots porteurs de sens
+    vectorizer = TfidfVectorizer(stop_words='english')
+    
+    try:
+        tfidf_matrix = vectorizer.fit_transform(valid_sentences)
+    except ValueError:
+        # En cas d'erreur (ex: vocabulaire vide), on renvoie les premières phrases
+        return " ".join(sentences[:num_sentences])
+
+    # score TF-IDF de chaque phrase
+    sentence_scores = np.array(tfidf_matrix.sum(axis=1)).flatten()
+    top_score_indices = sentence_scores.argsort()[-num_sentences:]# argsort() pour trier
+
+    top_score_indices.sort() # trier dans l'ordre d'apparition dans le texte original 
+    
+    #assembler le résumé
+    summary = " ".join([valid_sentences[i] for i in top_score_indices])
+    
+    return summary
 
 def calculate_lexdiv(text: str) -> dict:
     """Calcule les métriques de diversité lexicale d'un texte.
@@ -196,6 +241,49 @@ def extract_topics(text: str, n_topics: int = 4, n_words: int = 10) -> dict:
         topics[topic_idx + 1] = top_words
 
     return topics
+def extract_entities(text: str) -> dict:
+    """Extrait les personnages et lieux d'un texte via NLTK ne_chunk.
+
+    Approche : tokenisation par phrase → POS tagging → NER (Maxent chunker)
+    On filtre ensuite les entités de type PERSON, GPE, GSP et LOCATION.
+
+    Limitations connues :
+    - Génère des faux positifs sur les mots capitalisés en début de phrase
+      (ex: "Found", "Always", "Grief" détectés comme personnages)
+    - Le chunker NLTK est un modèle statistique léger entraîné sur des corpus
+      généraux (ACE), moins précis que spaCy (en_core_web_sm) ou un LLM
+    - Ne distingue pas les homonymes (ex: "Alice" peut être lieu et personnage)
+
+    Choix justifié : NLTK respecte la contrainte "no heavy models" du sujet."""
+    
+    characters = set()
+    locations = set()
+
+    # Tokenization phrase par phrase
+    sentences = sent_tokenize(text)
+
+    for sentence in sentences:
+        tokens = word_tokenize(sentence)
+        tagged = pos_tag(tokens)
+        chunks = ne_chunk(tagged)
+
+        for chunk in chunks:
+            # ne_chunk retourne soit une entité, soit mot normal
+            if isinstance(chunk, Tree):
+                name = " ".join(token for token, pos in chunk.leaves())
+                label = chunk.label()
+
+                if label == "PERSON":
+                    characters.add(name)
+                elif label in ("GPE", "GSP", "LOCATION"):
+                    locations.add(name)
+
+    return {
+        "characters": sorted(list(characters)),
+        "locations": sorted(list(locations))
+    }
+
+
 
 
 # STRUCTURE DU CLI
@@ -255,48 +343,18 @@ def main():
             save_to_cache(book_id, "entities", result)
 
         print(result)
-        
-def extract_entities(text: str) -> dict:
-    """Extrait les personnages et lieux d'un texte via NLTK ne_chunk.
-
-    Approche : tokenisation par phrase → POS tagging → NER (Maxent chunker)
-    On filtre ensuite les entités de type PERSON, GPE, GSP et LOCATION.
-
-    Limitations connues :
-    - Génère des faux positifs sur les mots capitalisés en début de phrase
-      (ex: "Found", "Always", "Grief" détectés comme personnages)
-    - Le chunker NLTK est un modèle statistique léger entraîné sur des corpus
-      généraux (ACE), moins précis que spaCy (en_core_web_sm) ou un LLM
-    - Ne distingue pas les homonymes (ex: "Alice" peut être lieu et personnage)
-
-    Choix justifié : NLTK respecte la contrainte "no heavy models" du sujet."""
     
-    characters = set()
-    locations = set()
+    elif args.summarize is not None:
+        book_id = args.summarize
+        result = load_from_cache(book_id, "summarize")
 
-    # Tokenization phrase par phrase
-    sentences = sent_tokenize(text)
+        if result is None:
+            text = get_clean_text(book_id)
+            print("Info: Summarizing book (not cached)...")
+            result = summarize_book(text)
+            save_to_cache(book_id, "summarize", result)
 
-    for sentence in sentences:
-        tokens = word_tokenize(sentence)
-        tagged = pos_tag(tokens)
-        chunks = ne_chunk(tagged)
-
-        for chunk in chunks:
-            # ne_chunk retourne soit une entité, soit mot normal
-            if isinstance(chunk, Tree):
-                name = " ".join(token for token, pos in chunk.leaves())
-                label = chunk.label()
-
-                if label == "PERSON":
-                    characters.add(name)
-                elif label in ("GPE", "GSP", "LOCATION"):
-                    locations.add(name)
-
-    return {
-        "characters": sorted(list(characters)),
-        "locations": sorted(list(locations))
-    }
-
+        print(result)
+        
 if __name__ == "__main__":
     main()
