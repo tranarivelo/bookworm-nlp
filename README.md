@@ -10,10 +10,29 @@ Built for the T-AIA-600 project.
 
 ### Option 1 — Docker (recommended)
 
+Build the image once:
+
 ```bash
 docker build -t bookworm .
-docker run --rm -v ${PWD}/cache:/app/cache -v ${PWD}/books:/app/books bookworm --lexdiv 11
 ```
+
+Create persistent volumes once:
+
+```bash
+docker volume create bookworm-cache
+docker volume create bookworm-books
+```
+
+Run a command:
+
+```powershell
+docker run --rm `
+  -v bookworm-cache:/app/cache `
+  -v bookworm-books:/app/books `
+  bookworm --lexdiv 11
+```
+
+Books and cached results are stored in Docker volumes and persist between runs.
 
 ### Option 2 — Local (Python 3.11+)
 
@@ -77,8 +96,10 @@ bookworm/
 
 ## How it works
 
-Results are cached in `cache/` as JSON files to avoid recomputing expensive operations.
-Books are downloaded from [Project Gutenberg](https://www.gutenberg.org/) and stored in `books/`.
+Results are cached as JSON files to avoid recomputing expensive operations.
+Books are downloaded from [Project Gutenberg](https://www.gutenberg.org/) and stored locally.
+
+When using Docker, both are persisted in named volumes (`bookworm-cache`, `bookworm-books`).
 
 ---
 
