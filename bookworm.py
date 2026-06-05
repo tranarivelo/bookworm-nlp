@@ -38,11 +38,7 @@ def load_from_cache(book_id: int, task_name: str):
             return json.load(f)
     return None
 
-def download_book(book_id: int) -> str:
-    
-    """Télécharge un livre depuis Project Gutenberg et le sauvegarde localement. 
-    Retourne le chemin vers le fichier. Ne re-télécharge pas si déjà présent."""
-        
+def download_book(book_id: int) -> str:      
     filepath = os.path.join(BOOKS_DIR, f"{book_id}.txt")
     if os.path.exists(filepath):
         return filepath
@@ -63,6 +59,22 @@ def download_book(book_id: int) -> str:
     except requests.exceptions.RequestException as e:
         print(f"Error downloading book: {e}", file=sys.stderr)
         sys.exit(1)
+
+def get_book_info(book_id: int, csv_filename="pg_catalog.csv") -> dict:
+    if not os.path.exists(csv_filename):
+        return {"id": str(book_id), "title": f"Book {book_id}", "authors": "Unknown", "bookshelves": "Unknown"}
+        
+    with open(csv_filename, mode='r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row['Text#'] == str(book_id):
+                return {
+                    'id': row['Text#'],
+                    'title': row['Title'].replace('\r\n', ' ').replace('\n', ' '), # Sécurité nettoyage
+                    'authors': row['Authors'],
+                    'bookshelves': row['Bookshelves']
+                }
+    return {"id": str(book_id), "title": f"Book {book_id}", "authors": "Unknown", "bookshelves": "Unknown"}
 
 def get_clean_text(book_id: int) -> str:
     
