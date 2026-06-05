@@ -25,11 +25,8 @@ docker volume create bookworm-books
 
 Run a command:
 
-```powershell
-docker run --rm `
-  -v bookworm-cache:/app/cache `
-  -v bookworm-books:/app/books `
-  bookworm --lexdiv 11
+```bash
+docker run --rm -v bookworm-cache:/app/cache -v bookworm-books:/app/books bookworm --lexdiv 11
 ```
 
 Books and cached results are stored in Docker volumes and persist between runs.
