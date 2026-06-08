@@ -101,7 +101,7 @@ def summarize_book(text: str, num_sentences: int = 4) -> str:
     # Decouper le texte en phrases
     sentences = sent_tokenize(text)
     
-    # si le texte est minuscule
+    # si le texte est en minuscule
     if len(sentences) <= num_sentences:
         return text
         

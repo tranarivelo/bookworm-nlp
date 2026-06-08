@@ -60,8 +60,8 @@ python bookworm.py <command> <book_id>
 | `--entities <ID>` | Extract characters and locations |
 | `--topics <ID>` | Topic modeling (LDA) |
 | `--summarize <ID>` | Book summarization |
-| `--similar <ID>` | Find similar books *(coming soon)* |
-| `--card <ID>` | Full book card *(coming soon)* |
+| `--similar <ID>` | Find similar books |
+| `--card <ID>` | Full book card |
 
 ### Examples
 
