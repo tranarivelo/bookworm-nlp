@@ -1,5 +1,6 @@
 import argparse
 import json
+from tokenize import group
 
 from .cache import save_to_cache, load_from_cache
 from .fetcher import get_clean_text
@@ -18,6 +19,7 @@ def main():
     group.add_argument('--summarize', type=int, help="Summarize a book ID")
     group.add_argument('--similar', type=int, help="Find similar books for a book ID")
     group.add_argument('--card', type=int, help="Generate the full book card for a book ID")
+    group.add_argument('--author', type=str, help="Download all books by a given author")
 
     args = parser.parse_args()
 
@@ -75,3 +77,8 @@ def main():
         print(f"Info: Generating full book card for ID {book_id}...")
         book_card = generate_book_card(book_id)
         print(json.dumps(book_card, indent=4, ensure_ascii=False))
+
+    elif args.author is not None:
+        from .fetcher import get_books_by_author
+        results = get_books_by_author(args.author)
+        print(json.dumps(results, indent=4, ensure_ascii=False))

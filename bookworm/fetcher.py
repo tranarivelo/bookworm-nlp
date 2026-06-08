@@ -64,3 +64,44 @@ def get_clean_text(book_id: int) -> str:
 
     text = re.sub(r'[ \t]+', ' ', text, flags=re.MULTILINE).strip()
     return text
+
+def get_books_by_author(author_query: str, csv_filename="pg_catalog.csv") -> list:
+    """Recherche et télécharge tous les livres d'un auteur depuis le catalogue Gutenberg.
+
+    Approche : recherche insensible à la casse sur le champ Authors du CSV.
+    Retourne la liste des infos des livres trouvés et téléchargés.
+
+    Limitation : c'est dépendant de la présence du csv en local."""
+
+    if not os.path.exists(csv_filename):
+        print("Error: pg_catalog.csv not found. Please download it from Gutenberg.", file=sys.stderr)
+        sys.exit(1)
+
+    matched_books = []
+
+    with open(csv_filename, mode='r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if author_query.lower() in row['Authors'].lower():
+                matched_books.append({
+                    'id': row['Text#'],
+                    'title': row['Title'].replace('\r\n', ' ').replace('\n', ' '),
+                    'authors': row['Authors'],
+                    'bookshelves': row['Bookshelves']
+                })
+
+    if not matched_books:
+        print(f"Info: No books found for author '{author_query}'.")
+        return []
+
+    print(f"Info: Found {len(matched_books)} book(s) for '{author_query}'. Downloading...")
+
+    downloaded = []
+    for book in matched_books:
+        try:
+            download_book(int(book['id']))
+            downloaded.append(book)
+        except SystemExit:
+            print(f"Warning: Could not download book {book['id']} : skipping.")
+
+    return downloaded
