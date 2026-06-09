@@ -20,6 +20,7 @@ def main():
     group.add_argument('--similar', type=int, help="Find similar books for a book ID")
     group.add_argument('--card', type=int, help="Generate the full book card for a book ID")
     group.add_argument('--author', type=str, help="Download all books by a given author")
+    group.add_argument('--category', type=str, help="Download all books matching a given category")
 
     args = parser.parse_args()
 
@@ -81,4 +82,9 @@ def main():
     elif args.author is not None:
         from .fetcher import get_books_by_author
         results = get_books_by_author(args.author)
+        print(json.dumps(results, indent=4, ensure_ascii=False))
+
+    elif args.category is not None:
+        from .fetcher import get_books_by_category
+        results = get_books_by_category(args.category)
         print(json.dumps(results, indent=4, ensure_ascii=False))

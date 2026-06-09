@@ -105,3 +105,53 @@ def get_books_by_author(author_query: str, csv_filename="pg_catalog.csv") -> lis
             print(f"Warning: Could not download book {book['id']} : skipping.")
 
     return downloaded
+
+
+def get_books_by_category(category_query: str, csv_filename="pg_catalog.csv") -> list:
+    """Search and download all books that match a given category (bookshelves/subjects).
+
+    The function matches case-insensitively against the `Bookshelves` and `Subjects`
+    fields in the local `pg_catalog.csv`, downloads each matched book (skipping
+    ones that fail), and returns the list of metadata for successfully downloaded
+    books.
+    """
+
+    if not os.path.exists(csv_filename):
+        print("Error: pg_catalog.csv not found. Please download it from Gutenberg.", file=sys.stderr)
+        sys.exit(1)
+
+    matched_books = []
+    seen_ids = set()
+
+    with open(csv_filename, mode='r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            bookshelves = (row.get('Bookshelves') or '')
+            subjects = (row.get('Subjects') or '')
+            if category_query.lower() in bookshelves.lower() or category_query.lower() in subjects.lower():
+                book_id = row['Text#']
+                if book_id in seen_ids:
+                    continue
+                seen_ids.add(book_id)
+                matched_books.append({
+                    'id': book_id,
+                    'title': row['Title'].replace('\r\n', ' ').replace('\n', ' '),
+                    'authors': row['Authors'],
+                    'bookshelves': row.get('Bookshelves', '')
+                })
+
+    if not matched_books:
+        print(f"Info: No books found for category '{category_query}'.")
+        return []
+
+    print(f"Info: Found {len(matched_books)} book(s) for category '{category_query}'. Downloading...")
+
+    downloaded = []
+    for book in matched_books:
+        try:
+            download_book(int(book['id']))
+            downloaded.append(book)
+        except SystemExit:
+            print(f"Warning: Could not download book {book['id']} : skipping.")
+
+    return downloaded
