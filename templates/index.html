@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookworm</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 2rem 2.5rem 1.5rem;
+      border-bottom: 1px solid #1e2333;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #f8fafc;
+    }
+
+    header p {
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem 2.5rem;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    select, input[type="text"] {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: #6366f1;
+    }
+
+    select {
+      cursor: pointer;
+      min-width: 180px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    button {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: #4f46e5; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-box {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.1rem;
+      border-bottom: 1px solid #2d3748;
+      font-size: 0.78rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #334155;
+      display: inline-block;
+      margin-right: 0.4rem;
+    }
+    .status-dot.ok  { background: #22c55e; }
+    .status-dot.err { background: #ef4444; }
+    .status-dot.loading {
+      background: #6366f1;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    pre {
+      padding: 1.2rem 1.4rem;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #cbd5e1;
+      min-height: 60px;
+    }
+
+    .error-text { color: #f87171; }
+
+    .hint {
+      font-size: 0.82rem;
+      color: #475569;
+      padding: 1.2rem 1.4rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Bookworm</h1>
+  <p>NLP analysis engine — Project Gutenberg</p>
+</header>
+
+<main>
+  <div class="controls">
+    <select id="command" onchange="updatePlaceholder()">
+      <option value="lexdiv">Lexical Diversity</option>
+      <option value="topics">Topics (LDA)</option>
+      <option value="entities">Named Entities</option>
+      <option value="summarize">Summarize</option>
+      <option value="similar">Similar Books</option>
+      <option value="card">Full Card</option>
+      <option value="author">By Author</option>
+      <option value="category">By Category</option>
+    </select>
+    <input type="text" id="value" placeholder="Book ID (e.g. 11)" onkeydown="if(event.key==='Enter') run()">
+    <button id="btn" onclick="run()">Run</button>
+  </div>
+
+  <div class="result-box">
+    <div class="result-header">
+      <span><span class="status-dot" id="dot"></span><span id="status-label">Prêt</span></span>
+      <span id="elapsed"></span>
+    </div>
+    <div id="result-area">
+      <p class="hint">Sélectionne une commande, entre un ID de livre (ex: 11 pour Alice au Pays des Merveilles) ou un nom d'auteur/catégorie, puis clique sur Run.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  const placeholders = {
+    lexdiv:   'Book ID (ex: 11)',
+    topics:   'Book ID (ex: 11)',
+    entities: 'Book ID (ex: 11)',
+    summarize:'Book ID (ex: 11)',
+    similar:  'Book ID (ex: 11)',
+    card:     'Book ID (ex: 11)',
+    author:   'Nom d\'auteur (ex: Carroll)',
+    category: 'Catégorie (ex: Horror)',
+  };
+
+  function updatePlaceholder() {
+    const cmd = document.getElementById('command').value;
+    document.getElementById('value').placeholder = placeholders[cmd] || 'Valeur';
+  }
+
+  async function run() {
+    const command = document.getElementById('command').value;
+    const value   = document.getElementById('value').value.trim();
+    if (!value) { document.getElementById('value').focus(); return; }
+
+    const dot    = document.getElementById('dot');
+    const label  = document.getElementById('status-label');
+    const elapsed= document.getElementById('elapsed');
+    const area   = document.getElementById('result-area');
+    const btn    = document.getElementById('btn');
+
+    dot.className   = 'status-dot loading';
+    label.textContent = 'Chargement…';
+    elapsed.textContent = '';
+    area.innerHTML  = '<pre>…</pre>';
+    btn.disabled    = true;
+
+    const t0 = Date.now();
+
+    try {
+      const res  = await fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command, value }),
+      });
+      const data = await res.json();
+      const ms   = Date.now() - t0;
+      elapsed.textContent = `${(ms / 1000).toFixed(1)}s`;
+
+      if (data.error) {
+        dot.className = 'status-dot err';
+        label.textContent = 'Erreur';
+        area.innerHTML = `<pre class="error-text">${escHtml(data.error)}</pre>`;
+      } else {
+        dot.className = 'status-dot ok';
+        label.textContent = 'OK';
+        area.innerHTML = `<pre>${escHtml(JSON.stringify(data.result, null, 2))}</pre>`;
+      }
+    } catch (e) {
+      dot.className = 'status-dot err';
+      label.textContent = 'Erreur réseau';
+      area.innerHTML = `<pre class="error-text">${escHtml(e.message)}</pre>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+</script>
+
+</body>
+</html>
