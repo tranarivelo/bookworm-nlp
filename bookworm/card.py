@@ -2,6 +2,7 @@ from .cache import save_to_cache, load_from_cache
 from .fetcher import get_clean_text, get_book_info
 from .analysis import calculate_lexdiv, extract_topics, extract_entities, summarize_book
 from .similarity import get_similar_books
+from .fetcher import get_clean_text, get_book_info, download_cover
 
 
 def generate_book_card(book_id: int) -> dict:
@@ -33,6 +34,8 @@ def generate_book_card(book_id: int) -> dict:
     if similar is None:
         similar = get_similar_books(book_id)
         save_to_cache(book_id, "similar", similar)
+    
+    cover_path = download_cover(book_id)
 
     return {
         "info": info,
@@ -40,5 +43,7 @@ def generate_book_card(book_id: int) -> dict:
         "topics": topics,
         "entities": entities,
         "summary": summary,
-        "similar": similar
+        "similar": similar,
+        "cover": cover_path
     }
+

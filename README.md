@@ -21,6 +21,7 @@ Create persistent volumes once:
 ```bash
 docker volume create bookworm-cache
 docker volume create bookworm-books
+docker volume create bookworm-covers
 ```
 
 Run a command:

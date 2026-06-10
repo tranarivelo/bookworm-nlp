@@ -155,3 +155,32 @@ def get_books_by_category(category_query: str, csv_filename="pg_catalog.csv") ->
             print(f"Warning: Could not download book {book['id']} : skipping.")
 
     return downloaded
+
+COVERS_DIR = "covers"
+os.makedirs(COVERS_DIR, exist_ok=True)
+
+def download_cover(book_id: int) -> str | None:
+    """Download a book cover from the Project Gutenberg website.
+
+Returns the local path to the image file, or None if unavailable.
+
+Limitation: not all book covers are available on Project Gutenberg.
+In such cases, None is returned to allow graceful error handling."""
+    
+    filepath = os.path.join(COVERS_DIR, f"{book_id}.jpg")
+    if os.path.exists(filepath):
+        return filepath
+
+    url = f"https://www.gutenberg.org/cache/epub/{book_id}/pg{book_id}.cover.medium.jpg"
+    
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"Info: No cover available for book {book_id}.")
+            return None
+        with open(filepath, 'wb') as f:
+            f.write(response.content)
+        return filepath
+    except requests.exceptions.RequestException as e:
+        print(f"Warning: Could not download cover for book {book_id}: {e}")
+        return None
