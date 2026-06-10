@@ -62,6 +62,8 @@ python bookworm.py <command> <book_id>
 | `--summarize <ID>` | Book summarization |
 | `--similar <ID>` | Find similar books |
 | `--card <ID>` | Full book card |
+| `--author <name>` | Download all books by an author |
+| `--category <name>` | Download all books matching a category |
 
 ### Examples
 
@@ -74,19 +76,46 @@ python bookworm.py --entities 345
 
 # Topic modeling of Peter Pan (ID 16)
 python bookworm.py --topics 16
+
+# Download all books by Lewis Carroll
+python bookworm.py --author Carroll
+
+# Download all books in the Horror category
+python bookworm.py --category Horror
 ```
+
+### Web interface
+
+```bash
+# Docker
+docker run -p 8080:8080 -v bookworm-cache:/app/cache -v bookworm-books:/app/books bookworm --web
+
+# Local
+python bookworm.py --web
+```
+
+Then open [http://localhost:8080](http://localhost:8080).
 
 ---
 
 ## Project Structure
 
 ```
-bookworm/
-├── bookworm.py          # Main script
-├── Dockerfile           # Docker support
-├── requirements.txt     # Python dependencies
-├── books/               # Downloaded books (auto-generated)
-└── cache/               # Cached results (auto-generated)
+T-AIA-600-PAR_28/
+├── bookworm.py          # Entry point (CLI + --web)
+├── app.py               # Web server (local dev shortcut)
+├── Dockerfile
+├── requirements.txt
+├── templates/
+│   └── index.html       # Web interface
+└── bookworm/
+    ├── cache.py         # Cache read/write
+    ├── fetcher.py       # Download & clean books
+    ├── analysis.py      # lexdiv, topics, entities, summarize
+    ├── similarity.py    # Similar books (TF-IDF cosine)
+    ├── card.py          # Full book card
+    ├── server.py        # Flask app
+    └── cli.py           # Argparse CLI
 ```
 
 ---
@@ -105,3 +134,4 @@ When using Docker, both are persisted in named volumes (`bookworm-cache`, `bookw
 - `nltk` — tokenization, POS tagging, NER
 - `scikit-learn` — LDA topic modeling
 - `requests` — book downloading
+- `flask` — web interface

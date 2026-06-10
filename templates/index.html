@@ -17,22 +17,14 @@
     }
 
     header {
-      padding: 2rem 2.5rem 1.5rem;
+      padding: 1.8rem 2.5rem 1.4rem;
       border-bottom: 1px solid #1e2333;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
     }
-
-    header h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: #f8fafc;
-    }
-
-    header p {
-      margin-top: 0.25rem;
-      font-size: 0.85rem;
-      color: #64748b;
-    }
+    header h1 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; }
+    header p  { font-size: 0.82rem; color: #475569; }
 
     main {
       flex: 1;
@@ -40,115 +32,140 @@
       flex-direction: column;
       gap: 1.5rem;
       padding: 2rem 2.5rem;
-      max-width: 900px;
+      max-width: 960px;
       width: 100%;
       margin: 0 auto;
     }
 
-    .controls {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+    /* ── Controls ── */
+    .controls { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
 
     select, input[type="text"] {
-      background: #1a1f2e;
-      border: 1px solid #2d3748;
-      color: #e2e8f0;
-      border-radius: 8px;
-      padding: 0.6rem 0.9rem;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.15s;
+      background: #1a1f2e; border: 1px solid #2d3748; color: #e2e8f0;
+      border-radius: 8px; padding: 0.6rem 0.9rem; font-size: 0.9rem;
+      outline: none; transition: border-color .15s;
     }
-
-    select:focus, input[type="text"]:focus {
-      border-color: #6366f1;
-    }
-
-    select {
-      cursor: pointer;
-      min-width: 180px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      min-width: 180px;
-    }
+    select:focus, input[type="text"]:focus { border-color: #6366f1; }
+    select { cursor: pointer; min-width: 180px; }
+    input[type="text"] { flex: 1; min-width: 180px; }
 
     button {
-      background: #6366f1;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 0.6rem 1.4rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, opacity 0.15s;
-      white-space: nowrap;
+      background: #6366f1; color: #fff; border: none; border-radius: 8px;
+      padding: 0.6rem 1.4rem; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: background .15s, opacity .15s; white-space: nowrap;
     }
+    button:hover   { background: #4f46e5; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button.secondary {
+      background: transparent; border: 1px solid #2d3748;
+      color: #94a3b8; font-size: 0.78rem; padding: 0.4rem 0.9rem;
+    }
+    button.secondary:hover { border-color: #6366f1; color: #e2e8f0; background: transparent; }
 
-    button:hover { background: #4f46e5; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-
+    /* ── Result box ── */
     .result-box {
-      background: #1a1f2e;
-      border: 1px solid #2d3748;
-      border-radius: 10px;
-      overflow: hidden;
+      background: #1a1f2e; border: 1px solid #2d3748;
+      border-radius: 10px; overflow: hidden;
     }
-
     .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 1.1rem;
-      border-bottom: 1px solid #2d3748;
-      font-size: 0.78rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.7rem 1.1rem; border-bottom: 1px solid #2d3748;
+      font-size: 0.78rem; color: #64748b;
     }
-
+    .result-header-left { display: flex; align-items: center; gap: 0.75rem; }
     .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #334155;
-      display: inline-block;
-      margin-right: 0.4rem;
+      width: 8px; height: 8px; border-radius: 50%; background: #334155; display: inline-block;
     }
-    .status-dot.ok  { background: #22c55e; }
-    .status-dot.err { background: #ef4444; }
-    .status-dot.loading {
-      background: #6366f1;
-      animation: pulse 1s infinite;
+    .status-dot.ok      { background: #22c55e; }
+    .status-dot.err     { background: #ef4444; }
+    .status-dot.loading { background: #6366f1; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .result-body { padding: 1.4rem; }
+    .hint { color: #475569; font-size: 0.85rem; padding: 1rem 0; }
+
+    /* Raw JSON fallback */
+    pre.raw {
+      font-size: 0.8rem; line-height: 1.6; overflow-x: auto;
+      white-space: pre-wrap; word-break: break-word; color: #cbd5e1;
+    }
+    .error-text { color: #f87171; font-size: 0.85rem; }
+
+    /* ── Shared components ── */
+    .section-title {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em;
+      color: #64748b; margin-bottom: 0.75rem; font-weight: 600;
+    }
+    .tag {
+      display: inline-block; background: #1e2640; border: 1px solid #2d3748;
+      color: #a5b4fc; border-radius: 20px; padding: 0.2rem 0.65rem;
+      font-size: 0.78rem; margin: 0.2rem;
+    }
+    .tag.location { color: #6ee7b7; border-color: #065f46; background: #052e16; }
+    .tag.character { color: #fbbf24; border-color: #78350f; background: #1c0f00; }
+
+    /* ── Lexdiv ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem;
+    }
+    .stat-card {
+      background: #111827; border: 1px solid #1f2937; border-radius: 8px;
+      padding: 1rem 0.9rem; text-align: center;
+    }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #a5b4fc; }
+    .stat-key   { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-top: 0.25rem; }
+    .stat-desc  { font-size: 0.68rem; color: #475569; margin-top: 0.15rem; }
+
+    /* ── Topics ── */
+    .topics-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;
+    }
+    .topic-card {
+      background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1rem;
+    }
+    .topic-card h4 { font-size: 0.78rem; color: #818cf8; margin-bottom: 0.6rem; font-weight: 600; }
+
+    /* ── Entities ── */
+    .entities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    @media (max-width: 540px) { .entities-grid { grid-template-columns: 1fr; } }
+
+    /* ── Summary ── */
+    .summary-text {
+      font-size: 0.95rem; line-height: 1.75; color: #cbd5e1;
+      border-left: 3px solid #6366f1; padding-left: 1.2rem;
+      font-style: italic;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+    /* ── Similar ── */
+    .similar-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .similar-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 0.75rem 1rem;
     }
-
-    pre {
-      padding: 1.2rem 1.4rem;
-      font-size: 0.82rem;
-      line-height: 1.6;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-      color: #cbd5e1;
-      min-height: 60px;
+    .similar-rank {
+      font-size: 0.75rem; color: #475569; font-weight: 700;
+      min-width: 1.5rem; text-align: center;
     }
+    .similar-title { font-size: 0.9rem; color: #e2e8f0; }
 
-    .error-text { color: #f87171; }
-
-    .hint {
-      font-size: 0.82rem;
-      color: #475569;
-      padding: 1.2rem 1.4rem;
+    /* ── Book list (author / category) ── */
+    .book-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem;
     }
+    .book-item {
+      background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1rem;
+    }
+    .book-item-title  { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.3rem; line-height: 1.3; }
+    .book-item-author { font-size: 0.78rem; color: #64748b; }
+    .book-item-id     { font-size: 0.7rem; color: #334155; margin-top: 0.4rem; }
+
+    /* ── Full card ── */
+    .card-header { margin-bottom: 1.5rem; }
+    .card-title  { font-size: 1.3rem; font-weight: 700; color: #f1f5f9; line-height: 1.3; }
+    .card-author { font-size: 0.88rem; color: #818cf8; margin-top: 0.3rem; }
+    .card-shelf  { font-size: 0.78rem; color: #475569; margin-top: 0.2rem; }
+    .card-section { margin-top: 1.5rem; }
+    .divider { border: none; border-top: 1px solid #1e2333; margin: 1.5rem 0; }
   </style>
 </head>
 <body>
@@ -170,32 +187,44 @@
       <option value="author">By Author</option>
       <option value="category">By Category</option>
     </select>
-    <input type="text" id="value" placeholder="Book ID (e.g. 11)" onkeydown="if(event.key==='Enter') run()">
+    <input type="text" id="value" placeholder="Book ID (ex: 11)" onkeydown="if(event.key==='Enter') run()">
     <button id="btn" onclick="run()">Run</button>
   </div>
 
   <div class="result-box">
     <div class="result-header">
-      <span><span class="status-dot" id="dot"></span><span id="status-label">Prêt</span></span>
-      <span id="elapsed"></span>
+      <div class="result-header-left">
+        <span class="status-dot" id="dot"></span>
+        <span id="status-label">Prêt</span>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <span id="elapsed" style="color:#475569"></span>
+        <button class="secondary" id="toggle-raw" onclick="toggleRaw()" style="display:none">JSON</button>
+      </div>
     </div>
-    <div id="result-area">
-      <p class="hint">Sélectionne une commande, entre un ID de livre (ex: 11 pour Alice au Pays des Merveilles) ou un nom d'auteur/catégorie, puis clique sur Run.</p>
+    <div class="result-body" id="result-body">
+      <p class="hint">Sélectionne une commande et entre un ID de livre (ex: 11 pour Alice au Pays des Merveilles), un nom d'auteur ou une catégorie.</p>
     </div>
   </div>
 </main>
 
 <script>
   const placeholders = {
-    lexdiv:   'Book ID (ex: 11)',
-    topics:   'Book ID (ex: 11)',
-    entities: 'Book ID (ex: 11)',
-    summarize:'Book ID (ex: 11)',
-    similar:  'Book ID (ex: 11)',
-    card:     'Book ID (ex: 11)',
-    author:   'Nom d\'auteur (ex: Carroll)',
-    category: 'Catégorie (ex: Horror)',
+    lexdiv:'Book ID (ex: 11)', topics:'Book ID (ex: 11)', entities:'Book ID (ex: 11)',
+    summarize:'Book ID (ex: 11)', similar:'Book ID (ex: 11)', card:'Book ID (ex: 11)',
+    author:"Nom d'auteur (ex: Carroll)", category:'Catégorie (ex: Horror)',
   };
+
+  const lexdivMeta = {
+    tok: ['Tokens',    'Total words'],
+    typ: ['Types',     'Unique words'],
+    hap: ['Hapax',     'Words used once'],
+    ttr: ['TTR',       'Type-Token Ratio'],
+    mwl: ['Avg length','Chars per word'],
+    mwf: ['Avg freq',  'Times per word'],
+  };
+
+  let lastResult = null, lastCommand = null, showRaw = false;
 
   function updatePlaceholder() {
     const cmd = document.getElementById('command').value;
@@ -207,53 +236,157 @@
     const value   = document.getElementById('value').value.trim();
     if (!value) { document.getElementById('value').focus(); return; }
 
-    const dot    = document.getElementById('dot');
-    const label  = document.getElementById('status-label');
-    const elapsed= document.getElementById('elapsed');
-    const area   = document.getElementById('result-area');
-    const btn    = document.getElementById('btn');
-
-    dot.className   = 'status-dot loading';
-    label.textContent = 'Chargement…';
-    elapsed.textContent = '';
-    area.innerHTML  = '<pre>…</pre>';
-    btn.disabled    = true;
+    setStatus('loading', 'Chargement…');
+    document.getElementById('result-body').innerHTML = '<p class="hint">…</p>';
+    document.getElementById('toggle-raw').style.display = 'none';
+    document.getElementById('btn').disabled = true;
+    showRaw = false;
 
     const t0 = Date.now();
-
     try {
       const res  = await fetch('/run', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command, value }),
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({command, value}),
       });
       const data = await res.json();
-      const ms   = Date.now() - t0;
-      elapsed.textContent = `${(ms / 1000).toFixed(1)}s`;
+      document.getElementById('elapsed').textContent = ((Date.now()-t0)/1000).toFixed(1)+'s';
 
       if (data.error) {
-        dot.className = 'status-dot err';
-        label.textContent = 'Erreur';
-        area.innerHTML = `<pre class="error-text">${escHtml(data.error)}</pre>`;
+        setStatus('err', 'Erreur');
+        document.getElementById('result-body').innerHTML =
+          `<p class="error-text">${esc(data.error)}</p>`;
       } else {
-        dot.className = 'status-dot ok';
-        label.textContent = 'OK';
-        area.innerHTML = `<pre>${escHtml(JSON.stringify(data.result, null, 2))}</pre>`;
+        lastResult = data.result; lastCommand = command;
+        setStatus('ok', 'OK');
+        document.getElementById('toggle-raw').style.display = 'inline-block';
+        document.getElementById('result-body').innerHTML = render(command, data.result);
       }
-    } catch (e) {
-      dot.className = 'status-dot err';
-      label.textContent = 'Erreur réseau';
-      area.innerHTML = `<pre class="error-text">${escHtml(e.message)}</pre>`;
+    } catch(e) {
+      setStatus('err', 'Erreur réseau');
+      document.getElementById('result-body').innerHTML = `<p class="error-text">${esc(e.message)}</p>`;
     } finally {
-      btn.disabled = false;
+      document.getElementById('btn').disabled = false;
     }
   }
 
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+  function toggleRaw() {
+    showRaw = !showRaw;
+    document.getElementById('toggle-raw').textContent = showRaw ? 'Catalogue' : 'JSON';
+    document.getElementById('result-body').innerHTML = showRaw
+      ? `<pre class="raw">${esc(JSON.stringify(lastResult, null, 2))}</pre>`
+      : render(lastCommand, lastResult);
+  }
+
+  function setStatus(type, label) {
+    document.getElementById('dot').className = 'status-dot ' + type;
+    document.getElementById('status-label').textContent = label;
+  }
+
+  /* ── Renderers ── */
+  function render(cmd, result) {
+    try {
+      if (cmd === 'lexdiv')   return renderLexdiv(result);
+      if (cmd === 'topics')   return renderTopics(result);
+      if (cmd === 'entities') return renderEntities(result);
+      if (cmd === 'summarize')return renderSummarize(result);
+      if (cmd === 'similar')  return renderSimilar(result);
+      if (cmd === 'card')     return renderCard(result);
+      if (cmd === 'author' || cmd === 'category') return renderBookList(result);
+    } catch(e) {}
+    return `<pre class="raw">${esc(JSON.stringify(result, null, 2))}</pre>`;
+  }
+
+  function renderLexdiv(r) {
+    return `<div class="section-title">Métriques de diversité lexicale</div>
+    <div class="stats-grid">${Object.entries(lexdivMeta).map(([k,[label,desc]])=>`
+      <div class="stat-card">
+        <div class="stat-value">${typeof r[k]==='number'&&!Number.isInteger(r[k])?r[k].toFixed(4):r[k]??'—'}</div>
+        <div class="stat-key">${label}</div>
+        <div class="stat-desc">${desc}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  function renderTopics(r) {
+    const entries = typeof r === 'object' && !Array.isArray(r) ? Object.entries(r) : [];
+    if (!entries.length) return '<p class="hint">Aucun topic trouvé.</p>';
+    return `<div class="section-title">Topics principaux (LDA)</div>
+    <div class="topics-grid">${entries.map(([k,words])=>`
+      <div class="topic-card">
+        <h4>Topic ${esc(k)}</h4>
+        <div>${(words||[]).map(w=>`<span class="tag">${esc(w)}</span>`).join('')}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  function renderEntities(r) {
+    const chars = r.characters || [], locs = r.locations || [];
+    return `<div class="entities-grid">
+      <div>
+        <div class="section-title">Personnages (${chars.length})</div>
+        <div>${chars.length ? chars.map(c=>`<span class="tag character">${esc(c)}</span>`).join('') : '<span style="color:#475569;font-size:.82rem">Aucun trouvé</span>'}</div>
+      </div>
+      <div>
+        <div class="section-title">Lieux (${locs.length})</div>
+        <div>${locs.length ? locs.map(l=>`<span class="tag location">${esc(l)}</span>`).join('') : '<span style="color:#475569;font-size:.82rem">Aucun trouvé</span>'}</div>
+      </div>
+    </div>`;
+  }
+
+  function renderSummarize(r) {
+    if (!r) return '<p class="hint">Résumé vide.</p>';
+    return `<div class="section-title">Résumé automatique</div>
+    <p class="summary-text">${esc(r)}</p>`;
+  }
+
+  function renderSimilar(r) {
+    if (!r || !r.length) return '<p class="hint">Aucun livre similaire trouvé.</p>';
+    return `<div class="section-title">Livres similaires</div>
+    <div class="similar-list">${r.map((title,i)=>`
+      <div class="similar-item">
+        <span class="similar-rank">#${i+1}</span>
+        <span class="similar-title">${esc(title)}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  function renderBookList(r) {
+    if (!r || !r.length) return '<p class="hint">Aucun livre trouvé.</p>';
+    return `<div class="section-title">${r.length} livre${r.length>1?'s':''} trouvé${r.length>1?'s':''}</div>
+    <div class="book-grid">${r.map(b=>`
+      <div class="book-item">
+        <div class="book-item-title">${esc(b.title||'Titre inconnu')}</div>
+        <div class="book-item-author">${esc(b.authors||'Auteur inconnu')}</div>
+        <div class="book-item-id">ID ${esc(b.id||'')}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  function renderCard(r) {
+    const info = r.info || {};
+    return `
+      <div class="card-header">
+        <div class="card-title">${esc(info.title||'Titre inconnu')}</div>
+        <div class="card-author">${esc(info.authors||'Auteur inconnu')}</div>
+        ${info.bookshelves?`<div class="card-shelf">${esc(info.bookshelves)}</div>`:''}
+      </div>
+      <hr class="divider">
+      <div class="card-section">${renderSummarize(r.summary)}</div>
+      <hr class="divider">
+      <div class="card-section">${renderLexdiv(r.lexdiv)}</div>
+      <hr class="divider">
+      <div class="card-section">${renderTopics(r.topics)}</div>
+      <hr class="divider">
+      <div class="card-section">${renderEntities(r.entities)}</div>
+      <hr class="divider">
+      <div class="card-section">${renderSimilar(r.similar)}</div>
+    `;
+  }
+
+  function esc(s) {
+    return String(s??'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 </script>
 
