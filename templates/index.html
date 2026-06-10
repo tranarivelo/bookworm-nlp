@@ -166,6 +166,18 @@
     .card-shelf  { font-size: 0.78rem; color: #475569; margin-top: 0.2rem; }
     .card-section { margin-top: 1.5rem; }
     .divider { border: none; border-top: 1px solid #1e2333; margin: 1.5rem 0; }
+    .card-header-inner { display: flex; gap: 1.2rem; align-items: flex-start; }
+    .card-cover {
+      width: 90px; min-width: 90px; height: 130px;
+      object-fit: cover; border-radius: 6px;
+      border: 1px solid #2d3748; display: block;
+    }
+    .card-cover-placeholder {
+      width: 90px; min-width: 90px; height: 130px;
+      background: #111827; border: 1px solid #1f2937;
+      border-radius: 6px; display: flex; align-items: center;
+      justify-content: center; color: #334155; font-size: 1.6rem;
+    }
   </style>
 </head>
 <body>
@@ -365,11 +377,20 @@
 
   function renderCard(r) {
     const info = r.info || {};
+    const bookId = info.id || '';
+    const coverHtml = r.cover
+      ? `<img class="card-cover" src="/cover/${esc(bookId)}" alt="cover">`
+      : `<div class="card-cover-placeholder">📖</div>`;
     return `
       <div class="card-header">
-        <div class="card-title">${esc(info.title||'Titre inconnu')}</div>
-        <div class="card-author">${esc(info.authors||'Auteur inconnu')}</div>
-        ${info.bookshelves?`<div class="card-shelf">${esc(info.bookshelves)}</div>`:''}
+        <div class="card-header-inner">
+          ${coverHtml}
+          <div>
+            <div class="card-title">${esc(info.title||'Titre inconnu')}</div>
+            <div class="card-author">${esc(info.authors||'Auteur inconnu')}</div>
+            ${info.bookshelves?`<div class="card-shelf">${esc(info.bookshelves)}</div>`:''}
+          </div>
+        </div>
       </div>
       <hr class="divider">
       <div class="card-section">${renderSummarize(r.summary)}</div>

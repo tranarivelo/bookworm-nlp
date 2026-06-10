@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify
+import os
+from flask import Flask, render_template, request, jsonify, send_file, abort
 
 from .cache import save_to_cache, load_from_cache
 from .fetcher import get_clean_text, get_books_by_author, get_books_by_category
@@ -77,6 +78,14 @@ def run():
         return jsonify({'error': 'ID de livre invalide (entier attendu).'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/cover/<int:book_id>')
+def cover(book_id):
+    filepath = os.path.join('covers', f'{book_id}.jpg')
+    if os.path.exists(filepath):
+        return send_file(os.path.abspath(filepath), mimetype='image/jpeg')
+    abort(404)
 
 
 def run_server(host='0.0.0.0', port=8080):
