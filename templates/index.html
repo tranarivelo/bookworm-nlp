@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bookworm</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -211,6 +212,7 @@
       </div>
       <div style="display:flex;gap:0.5rem;align-items:center">
         <span id="elapsed" style="color:#475569"></span>
+        <button class="secondary" id="export-pdf" onclick="exportPDF()" style="display:none">PDF</button>
         <button class="secondary" id="toggle-raw" onclick="toggleRaw()" style="display:none">JSON</button>
       </div>
     </div>
@@ -272,6 +274,7 @@
         lastResult = data.result; lastCommand = command;
         setStatus('ok', 'OK');
         document.getElementById('toggle-raw').style.display = 'inline-block';
+        if (command === 'card') document.getElementById('export-pdf').style.display = 'inline-block';
         document.getElementById('result-body').innerHTML = render(command, data.result);
       }
     } catch(e) {
@@ -403,6 +406,30 @@
       <hr class="divider">
       <div class="card-section">${renderSimilar(r.similar)}</div>
     `;
+  }
+
+  function exportPDF() {
+    const info  = (lastResult && lastResult.info) || {};
+    const title = (info.title || 'bookworm-card').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    const btn   = document.getElementById('export-pdf');
+
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    const source = document.getElementById('result-body').cloneNode(true);
+    source.style.cssText = 'padding:20px; background:#1a1f2e; color:#e2e8f0; font-family:Segoe UI,system-ui,sans-serif;';
+
+    html2pdf()
+      .set({
+        margin: 8,
+        filename: `${title}.pdf`,
+        image: { type: 'jpeg', quality: 0.97 },
+        html2canvas: { scale: 2, backgroundColor: '#1a1f2e', useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      })
+      .from(source)
+      .save()
+      .then(() => { btn.disabled = false; btn.textContent = 'PDF'; });
   }
 
   function esc(s) {
