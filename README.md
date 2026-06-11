@@ -158,7 +158,7 @@ python bookworm.py <command> <value>
 | `--summarize <ID>` | Book ID | Automatic extractive summary |
 | `--lexdiv <ID>` | Book ID | Lexical diversity metrics (TTR, hapax, token count…) |
 | `--topics <ID>` | Book ID | Topic modeling via LDA — returns the main thematic clusters |
-| `--entities <ID>` | Book ID | Named entity recognition — extracts characters and locations |
+| `--entities <ID>` | Book ID | Named entity recognition - extracts characters and locations |
 | `--similar <ID>` | Book ID | Finds the 5 most similar books from a built-in reference collection |
 | `--author <name>` | Author name | Downloads all books by a given author |
 | `--category <name>` | Category name | Downloads all books matching a category or bookshelf |
