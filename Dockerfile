@@ -2,6 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Dépendances système pour WeasyPrint
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 libpangocairo-1.0-0 libcairo2 \
+    libgdk-pixbuf-2.0-0 libffi-dev fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copie et installe les dépendances
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

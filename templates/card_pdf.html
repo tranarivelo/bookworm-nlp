@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm;
+      background: #0f1117;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Liberation Sans, Arial, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    .card-header {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #1e2333;
+    }
+    .card-cover {
+      width: 80px;
+      height: 115px;
+      object-fit: cover;
+      border-radius: 5px;
+      border: 1px solid #2d3748;
+    }
+    .card-cover-placeholder {
+      width: 80px;
+      height: 115px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22pt;
+      color: #334155;
+    }
+    .card-title  { font-size: 16pt; font-weight: 700; color: #f1f5f9; line-height: 1.25; }
+    .card-author { font-size: 10pt; color: #818cf8; margin-top: 4px; }
+    .card-shelf  { font-size: 8.5pt; color: #475569; margin-top: 3px; }
+
+    /* ── Sections ── */
+    .section { margin-top: 16px; }
+    .divider  { border: none; border-top: 1px solid #1e2333; margin: 14px 0; }
+
+    .section-title {
+      font-size: 7pt;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    /* ── Summary ── */
+    .summary-text {
+      font-style: italic;
+      color: #cbd5e1;
+      border-left: 3px solid #6366f1;
+      padding-left: 10px;
+      font-size: 9.5pt;
+      line-height: 1.65;
+    }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .stat-card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      padding: 7px 10px;
+      text-align: center;
+      min-width: 70px;
+      flex: 1;
+    }
+    .stat-value { font-size: 12pt; font-weight: 700; color: #a5b4fc; }
+    .stat-key   { font-size: 7pt; text-transform: uppercase; letter-spacing: .05em; color: #64748b; margin-top: 2px; }
+    .stat-desc  { font-size: 6.5pt; color: #475569; margin-top: 1px; }
+
+    /* ── Topics ── */
+    .topics-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .topic-card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      padding: 8px 10px;
+      flex: 1;
+      min-width: 110px;
+    }
+    .topic-card h4 { font-size: 7.5pt; color: #818cf8; margin-bottom: 5px; font-weight: 700; }
+
+    /* ── Tags ── */
+    .tag {
+      display: inline-block;
+      background: #1e2640;
+      border: 1px solid #2d3748;
+      color: #a5b4fc;
+      border-radius: 20px;
+      padding: 1px 7px;
+      font-size: 7.5pt;
+      margin: 1.5px;
+    }
+    .tag.character { color: #fbbf24; border-color: #78350f; background: #1c0f00; }
+    .tag.location  { color: #6ee7b7; border-color: #065f46; background: #052e16; }
+
+    /* ── Entities ── */
+    .entities-grid { display: flex; gap: 12px; }
+    .entities-col  { flex: 1; }
+
+    /* ── Similar ── */
+    .similar-list { display: flex; flex-direction: column; gap: 4px; }
+    .similar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      padding: 6px 10px;
+    }
+    .similar-rank  { font-size: 7.5pt; color: #475569; font-weight: 700; min-width: 18px; }
+    .similar-title { font-size: 9pt; color: #e2e8f0; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid #1e2333;
+      font-size: 7pt;
+      color: #334155;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  {% set info = card.info or {} %}
+  {% set lexdiv = card.lexdiv or {} %}
+  {% set topics = card.topics or {} %}
+  {% set entities = card.entities or {} %}
+  {% set summary = card.summary or '' %}
+  {% set similar = card.similar or [] %}
+
+  <!-- Header -->
+  <div class="card-header">
+    {% if card.cover %}
+      <img class="card-cover" src="/cover/{{ book_id }}" alt="cover">
+    {% else %}
+      <div class="card-cover-placeholder">📖</div>
+    {% endif %}
+    <div>
+      <div class="card-title">{{ info.title or 'Titre inconnu' }}</div>
+      <div class="card-author">{{ info.authors or 'Auteur inconnu' }}</div>
+      {% if info.bookshelves %}<div class="card-shelf">{{ info.bookshelves }}</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Summary -->
+  {% if summary %}
+  <div class="section">
+    <div class="section-title">Résumé automatique</div>
+    <p class="summary-text">{{ summary }}</p>
+  </div>
+  <hr class="divider">
+  {% endif %}
+
+  <!-- Lexdiv -->
+  {% if lexdiv %}
+  <div class="section">
+    <div class="section-title">Métriques de diversité lexicale</div>
+    <div class="stats-grid">
+      {% set meta = [
+        ('tok', 'Tokens',     'Total words'),
+        ('typ', 'Types',      'Unique words'),
+        ('hap', 'Hapax',      'Words used once'),
+        ('ttr', 'TTR',        'Type-Token Ratio'),
+        ('mwl', 'Avg length', 'Chars per word'),
+        ('mwf', 'Avg freq',   'Times per word'),
+      ] %}
+      {% for key, label, desc in meta %}
+      <div class="stat-card">
+        <div class="stat-value">{{ lexdiv[key] }}</div>
+        <div class="stat-key">{{ label }}</div>
+        <div class="stat-desc">{{ desc }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <hr class="divider">
+  {% endif %}
+
+  <!-- Topics -->
+  {% if topics %}
+  <div class="section">
+    <div class="section-title">Topics principaux (LDA)</div>
+    <div class="topics-grid">
+      {% for k, words in topics.items() %}
+      <div class="topic-card">
+        <h4>Topic {{ k }}</h4>
+        <div>{% for w in words %}<span class="tag">{{ w }}</span>{% endfor %}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <hr class="divider">
+  {% endif %}
+
+  <!-- Entities -->
+  {% if entities %}
+  <div class="section">
+    <div class="section-title">Entités nommées</div>
+    <div class="entities-grid">
+      <div class="entities-col">
+        <div class="section-title">Personnages ({{ entities.characters | length }})</div>
+        {% for c in entities.characters %}<span class="tag character">{{ c }}</span>{% endfor %}
+      </div>
+      <div class="entities-col">
+        <div class="section-title">Lieux ({{ entities.locations | length }})</div>
+        {% for l in entities.locations %}<span class="tag location">{{ l }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+  <hr class="divider">
+  {% endif %}
+
+  <!-- Similar -->
+  {% if similar %}
+  <div class="section">
+    <div class="section-title">Livres similaires</div>
+    <div class="similar-list">
+      {% for title in similar %}
+      <div class="similar-item">
+        <span class="similar-rank">#{{ loop.index }}</span>
+        <span class="similar-title">{{ title }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="footer">Bookworm — NLP Engine · Project Gutenberg · ID {{ book_id }}</div>
+
+</body>
+</html>

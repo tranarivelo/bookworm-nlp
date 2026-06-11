@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bookworm</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -409,27 +408,9 @@
   }
 
   function exportPDF() {
-    const info  = (lastResult && lastResult.info) || {};
-    const title = (info.title || 'bookworm-card').replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    const btn   = document.getElementById('export-pdf');
-
-    btn.disabled = true;
-    btn.textContent = '…';
-
-    const source = document.getElementById('result-body').cloneNode(true);
-    source.style.cssText = 'padding:20px; background:#1a1f2e; color:#e2e8f0; font-family:Segoe UI,system-ui,sans-serif;';
-
-    html2pdf()
-      .set({
-        margin: 8,
-        filename: `${title}.pdf`,
-        image: { type: 'jpeg', quality: 0.97 },
-        html2canvas: { scale: 2, backgroundColor: '#1a1f2e', useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      })
-      .from(source)
-      .save()
-      .then(() => { btn.disabled = false; btn.textContent = 'PDF'; });
+    const info   = (lastResult && lastResult.info) || {};
+    const bookId = info.id || '';
+    window.open(`/export/pdf/${bookId}`, '_blank');
   }
 
   function esc(s) {

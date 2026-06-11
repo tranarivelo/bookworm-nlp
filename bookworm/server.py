@@ -1,3 +1,4 @@
+import io
 import os
 from flask import Flask, render_template, request, jsonify, send_file, abort
 
@@ -78,6 +79,22 @@ def run():
         return jsonify({'error': 'ID de livre invalide (entier attendu).'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/export/pdf/<int:book_id>')
+def export_pdf(book_id):
+    from weasyprint import HTML
+    card = generate_book_card(book_id)
+    html = render_template('card_pdf.html', card=card, book_id=book_id)
+    pdf_bytes = HTML(string=html, base_url=request.host_url).write_pdf()
+    title = (card.get('info', {}).get('title') or f'book-{book_id}')
+    title = ''.join(c if c.isalnum() or c in ' -' else '' for c in title).strip().replace(' ', '-')[:60]
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f'{title}.pdf'
+    )
 
 
 @app.route('/cover/<int:book_id>')
